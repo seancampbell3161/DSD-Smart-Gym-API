@@ -1,1 +1,0 @@
-# DSD-Smart-Gym-Backend

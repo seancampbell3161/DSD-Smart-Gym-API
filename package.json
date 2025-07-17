@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@clerk/express": "^1.7.10",
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
     "mongoose": "^8.16.3"

@@ -29,13 +29,15 @@ const checkInSchema = new Schema({
 
 checkInSchema.index({ profile_id: 1, checked_out: 1 });
 
-const qrTokenSchema = new Schema({
-  profile_id: { type: String, ref: "Profile", required: true },
-  gym_id: { type: Schema.Types.ObjectId, ref: "Gym", required: true },
-  token: { type: String, required: true, unique: true },
-  expires_at: { type: Date, required: true },
-  created_at: { type: Date, default: Date.now },
-});
+const qrTokenSchema = new Schema(
+  {
+    profile_id: { type: String, ref: "Profile", required: true },
+    gym_id: { type: Schema.Types.ObjectId, ref: "Gym", required: true },
+    token: { type: String, required: true, unique: true },
+    expires_at: { type: Date, required: true },
+  },
+  { timestamps: true }
+);
 
 export const Gym = mongoose.model("Gym", gymSchema);
 export const Profile = mongoose.model("Profile", profileSchema);

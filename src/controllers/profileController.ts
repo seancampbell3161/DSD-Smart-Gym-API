@@ -3,7 +3,7 @@ import { Profile } from "../models/schemas";
 import { getAuth } from "@clerk/express";
 import { Request, Response } from "express";
 
-export const createProfile = async () => {
+export const createProfile = async (response: Response) => {
   try {
     const profile = new Profile({
       _id: "user_300dWPNTjjdxTw7cYxfR5OePca3",
@@ -14,8 +14,10 @@ export const createProfile = async () => {
     });
 
     await profile.save();
+
+    return response.status(201).json({ success: true });
   } catch (error) {
-    console.error(error);
+    return response.status(500).json({ error });
   }
 };
 
@@ -24,8 +26,8 @@ export const fetchProfile = async (request: Request, response: Response) => {
 
   try {
     const profile = await Profile.findById(userId);
-    response.json(profile);
+    return response.status(201).json({ success: true, profile });
   } catch (error) {
-    response.status(500).json({ error });
+    return response.status(500).json({ error });
   }
 };

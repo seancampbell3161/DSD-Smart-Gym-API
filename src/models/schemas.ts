@@ -9,7 +9,7 @@ const gymSchema = new Schema({
   phone: { type: String, required: true },
 });
 
-const userSchema = new Schema(
+const profileSchema = new Schema(
   {
     _id: { type: String, required: true },
     name: { type: String, required: true },
@@ -21,16 +21,16 @@ const userSchema = new Schema(
 );
 
 const checkInSchema = new Schema({
-  user_id: { type: String, ref: "User", required: true },
+  profile_id: { type: String, ref: "Profile", required: true },
   gym_id: { type: Schema.Types.ObjectId, ref: "Gym", required: true },
   checked_in: { type: Date, required: true },
   checked_out: { type: Date, default: null },
 });
 
-checkInSchema.index({ user_id: 1, checked_out: 1 });
+checkInSchema.index({ profile_id: 1, checked_out: 1 });
 
 const qrTokenSchema = new Schema({
-  user_id: { type: String, ref: "User", required: true },
+  profile_id: { type: String, ref: "Profile", required: true },
   gym_id: { type: Schema.Types.ObjectId, ref: "Gym", required: true },
   token: { type: String, required: true, unique: true },
   expires_at: { type: Date, required: true },
@@ -38,6 +38,6 @@ const qrTokenSchema = new Schema({
 });
 
 export const Gym = mongoose.model("Gym", gymSchema);
-export const User = mongoose.model("User", userSchema);
+export const Profile = mongoose.model("Profile", profileSchema);
 export const CheckIn = mongoose.model("CheckIn", checkInSchema);
 export const QRToken = mongoose.model("QRToken", qrTokenSchema);

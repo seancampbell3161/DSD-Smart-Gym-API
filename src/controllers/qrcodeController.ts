@@ -14,14 +14,9 @@ export const createQRCode = async (request: Request, response: Response) => {
     });
 
     if (existingToken) {
-      const qrCodeUrl = `
-      https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
-        existingToken.token
-      )}`;
-
       return response.status(201).json({
         success: true,
-        qrCodeUrl,
+        token: existingToken.token,
       });
     }
 
@@ -38,12 +33,7 @@ export const createQRCode = async (request: Request, response: Response) => {
 
     await qrToken.save();
 
-    const qrCodeUrl = `
-      https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
-        token
-      )}`;
-
-    return response.status(201).json({ success: true, qrCodeUrl });
+    return response.status(201).json({ success: true, token: token });
   } catch (error) {
     return response.status(500).json({ error });
   }

@@ -46,11 +46,13 @@ const cafeInventorySchema = new Schema({
   item_image: { type: String, required: true },
   item_category: { type: String, required: true },
   available_quantity: { type: Number, required: true },
-})
-
+});
 
 export const Gym = mongoose.model("Gym", gymSchema);
 export const Profile = mongoose.model("Profile", profileSchema);
 export const CheckInOut = mongoose.model("CheckInOut", checkInOutSchema);
 export const QRToken = mongoose.model("QRToken", qrTokenSchema);
-export const CafeInventory = mongoose.model("CafeInventory", cafeInventorySchema);
+export const CafeInventory = mongoose.model(
+  "CafeInventory",
+  cafeInventorySchema
+);

@@ -1,3 +1,5 @@
+# Ignore environment variables file
+.env
 # Node
 node_modules/
 dist/

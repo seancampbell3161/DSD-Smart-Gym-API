@@ -4,30 +4,14 @@ import {
   updateCafeInventory,
   deleteCafeInventory,
 } from "../controllers/cafeInventoryController";
-import { requireAuth } from "../middleware/requireAuth";
 import { requireRole } from "../middleware/requireRole";
 import express from "express";
 
 const router = express.Router();
 
-router.get("/cafe-inventory", requireAuth, getCafeInventory);
-router.post(
-  "/cafe-inventory",
-  requireAuth,
-  requireRole("admin"),
-  createCafeInventory
-);
-router.put(
-  "/cafe-inventory/:id",
-  requireAuth,
-  requireRole("admin"),
-  updateCafeInventory
-);
-router.delete(
-  "/cafe-inventory/:id",
-  requireAuth,
-  requireRole("admin"),
-  deleteCafeInventory
-);
+router.get("/cafe-inventory", getCafeInventory);
+router.post("/cafe-inventory", requireRole("admin"), createCafeInventory);
+router.put("/cafe-inventory/:id", requireRole("admin"), updateCafeInventory);
+router.delete("/cafe-inventory/:id", requireRole("admin"), deleteCafeInventory);
 
 export default router;

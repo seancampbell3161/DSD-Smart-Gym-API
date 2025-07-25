@@ -5,6 +5,8 @@ import { connectDB } from "./connectDB";
 import { clerkMiddleware } from "@clerk/express";
 import profileRoutes from "./routes/profiles";
 import gymRoutes from "./routes/gyms";
+import qrcodeRoutes from "./routes/qrcodes";
+import checkinoutRoutes from "./routes/checkInOut";
 
 dotenv.config();
 
@@ -24,5 +26,7 @@ connectDB();
 
 app.use("/api/profiles", profileRoutes);
 app.use("/api/gyms", gymRoutes);
+app.use("/api/qrCodes", qrcodeRoutes);
+app.use("/api/checkInOut", checkinoutRoutes);
 
 export default app;

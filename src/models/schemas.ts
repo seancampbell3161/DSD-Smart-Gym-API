@@ -39,7 +39,39 @@ const qrTokenSchema = new Schema(
   { timestamps: true }
 );
 
+const classSchema = new Schema(
+  {
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+    trainer_id: { type: String, ref: "Profile", required: true },
+    gym_id: { type: Schema.Types.ObjectId, ref: "Gym", required: true },
+    date: { type: Date, required: true },
+    start_time: { type: String, required: true },
+    end_time: { type: String, required: true },
+    attendees: { type: Number, default: 0 },
+    capacity: { type: Number, required: true },
+  },
+  { timestamps: true }
+);
+
+const classBookingSchema = new Schema(
+  {
+    class_id: { type: Schema.Types.ObjectId, ref: "Class", required: true },
+    profile_id: { type: String, ref: "Profile", required: true },
+  },
+  { timestamps: true }
+);
+
+const waitlistSchema = new Schema({
+  class_id: { type: Schema.Types.ObjectId, ref: "Class", required: true },
+  profile_id: { type: String, ref: "Profile", required: true },
+  joined_at: { type: Date, default: Date.now },
+});
+
 export const Gym = mongoose.model("Gym", gymSchema);
 export const Profile = mongoose.model("Profile", profileSchema);
 export const CheckInOut = mongoose.model("CheckInOut", checkInOutSchema);
 export const QRToken = mongoose.model("QRToken", qrTokenSchema);
+export const Class = mongoose.model("Class", classSchema);
+export const ClassBooking = mongoose.model("ClassBooking", classBookingSchema);
+export const Waitlist = mongoose.model("Waitlist", waitlistSchema);

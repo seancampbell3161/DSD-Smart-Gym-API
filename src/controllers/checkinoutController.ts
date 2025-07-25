@@ -1,6 +1,7 @@
 import { getAuth } from "@clerk/express";
 import { Request, Response } from "express";
 import { CheckInOut } from "../models/schemas";
+import mongoose from "mongoose";
 
 export const handleCheckInOut = async (
   request: Request,
@@ -10,6 +11,7 @@ export const handleCheckInOut = async (
   const { gym_id } = request.body;
 
   try {
+    const gymObjectId = new mongoose.Types.ObjectId(gym_id);
     const activeCheckIn = await CheckInOut.findOne({
       profile_id: userId,
       checked_out: null,
@@ -26,7 +28,7 @@ export const handleCheckInOut = async (
 
     const newCheckIn = new CheckInOut({
       profile_id: userId,
-      gym_id: gym_id,
+      gym_id: gymObjectId,
       checked_in: new Date(),
       checked_out: null,
     });

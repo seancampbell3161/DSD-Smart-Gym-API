@@ -7,6 +7,8 @@ import profileRoutes from "./routes/profiles";
 import gymRoutes from "./routes/gyms";
 import qrcodeRoutes from "./routes/qrcodes";
 import checkinoutRoutes from "./routes/checkInOut";
+import classRoutes from "./routes/classes";
+import classBookingRoutes from "./routes/classBookings";
 
 dotenv.config();
 
@@ -28,5 +30,7 @@ app.use("/api/profiles", profileRoutes);
 app.use("/api/gyms", gymRoutes);
 app.use("/api/qrCodes", qrcodeRoutes);
 app.use("/api/checkInOut", checkinoutRoutes);
+app.use("/api/classes", classRoutes);
+app.use("/api/classbookings", classBookingRoutes);
 
 export default app;

@@ -6,10 +6,10 @@ import { Request, Response } from "express";
 export const createProfile = async (response: Response) => {
   try {
     const profile = new Profile({
-      _id: "user_300dWPNTjjdxTw7cYxfR5OePca3",
-      name: "Smitty WerbenJagerManJensen",
-      email: "testmember@email.com",
-      role: "member",
+      _id: "user_30NM6aieIviok2UlrdeNk2AG5az",
+      name: "Kevin Hart",
+      email: "testtrainer3@email.com",
+      role: "trainer",
       gym_id: new mongoose.Types.ObjectId("687a58fbc5b2fdc81be8b581"),
     });
 

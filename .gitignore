@@ -1,7 +1,8 @@
+# Ignore environment variables file
+.env
 # Node
 node_modules/
 dist/
-.env
 
 # Logs
 logs/

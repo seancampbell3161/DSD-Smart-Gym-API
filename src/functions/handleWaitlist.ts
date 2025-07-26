@@ -12,8 +12,9 @@ export const handleWaitlist = async ({
   if (gymClass.attendees >= gymClass.capacity) return;
 
   const nextInLine = await Waitlist.findOne({ class_id: classObjectId }).sort({
-    createdAt: 1,
+    _id: 1,
   });
+
   if (!nextInLine) return;
 
   await nextInLine.deleteOne();

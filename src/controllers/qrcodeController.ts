@@ -3,11 +3,11 @@ import { QRToken } from "../models/schemas";
 import crypto from "crypto";
 
 export const createQRCode = async (request: Request, response: Response) => {
-  const { gym_id } = request.body;
+  const { gym_id, user_id } = request.body;
 
   try {
     const existingToken = await QRToken.findOne({
-      user_id: userId,
+      user_id: user_id,
       expires_at: { $gt: new Date() },
     });
 
@@ -23,7 +23,7 @@ export const createQRCode = async (request: Request, response: Response) => {
     expiresAt.setDate(expiresAt.getDate() + 7);
 
     const qrToken = new QRToken({
-      profile_id: userId,
+      user_id: user_id,
       gym_id: gym_id,
       token: token,
       expires_at: expiresAt,

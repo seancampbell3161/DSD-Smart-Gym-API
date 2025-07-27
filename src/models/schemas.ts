@@ -10,18 +10,18 @@ const gymSchema = new Schema({
 });
 
 const checkInOutSchema = new Schema({
-  profile_id: { type: Schema.Types.ObjectId, ref: "Profile", required: true },
-  gym_id: { type: Schema.Types.ObjectId, ref: "Gym", required: true },
+  user_id: { type: String, ref: "User", required: true },
+  gym_id: { type: String, ref: "Gym", required: true },
   checked_in: { type: Date, required: true },
   checked_out: { type: Date, default: null },
 });
 
-checkInOutSchema.index({ profile_id: 1, checked_out: 1 });
+checkInOutSchema.index({ user_id: 1, checked_out: 1 });
 
 const qrTokenSchema = new Schema(
   {
-    profile_id: { type: Schema.Types.ObjectId, ref: "Profile", required: true },
-    gym_id: { type: Schema.Types.ObjectId, ref: "Gym", required: true },
+    user_id: { type: String, ref: "User", required: true },
+    gym_id: { type: String, ref: "Gym", required: true },
     qr_token: { type: String, required: true, unique: true },
     expires_at: { type: Date, required: true },
   },

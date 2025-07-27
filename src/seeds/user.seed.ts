@@ -3,17 +3,9 @@
 // - Insert the data
 
 import { User } from "../models/user.model";
+import { IUser } from "../types/interface";
 
 const crypto = require("crypto");
-
-interface IUser {
-  _id: string;
-  name: string;
-  password: string;
-  salt: string;
-  role: string;
-  gym_id: string;
-}
 
 let adminUser: IUser = {
   _id: "admin@email.com",

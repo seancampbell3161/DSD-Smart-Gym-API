@@ -1,10 +1,8 @@
-import { getAuth } from "@clerk/express";
 import { Request, Response } from "express";
 import { QRToken } from "../models/schemas";
 import crypto from "crypto";
 
 export const createQRCode = async (request: Request, response: Response) => {
-  const { userId } = getAuth(request);
   const { gym_id } = request.body;
 
   try {
@@ -16,7 +14,7 @@ export const createQRCode = async (request: Request, response: Response) => {
     if (existingToken) {
       return response.status(201).json({
         success: true,
-        token: existingToken.token,
+        token: existingToken.qr_token,
       });
     }
 
@@ -25,7 +23,7 @@ export const createQRCode = async (request: Request, response: Response) => {
     expiresAt.setDate(expiresAt.getDate() + 7);
 
     const qrToken = new QRToken({
-      user_id: userId,
+      profile_id: userId,
       gym_id: gym_id,
       token: token,
       expires_at: expiresAt,

@@ -39,38 +39,6 @@ let users: IUser[] = [
     role: "member",
     gym_id: "123",
   },
-  {
-    _id: "member2@email.com",
-    name: "John Smith",
-    password: "123161",
-    salt: "123415",
-    role: "member",
-    gym_id: "123",
-  },
-  {
-    _id: "member3@email.com",
-    name: "John Smith",
-    password: "123161",
-    salt: "123415",
-    role: "member",
-    gym_id: "123",
-  },
-  {
-    _id: "member4@email.com",
-    name: "John Smith",
-    password: "123161",
-    salt: "123415",
-    role: "member",
-    gym_id: "123",
-  },
-  {
-    _id: "member5@email.com",
-    name: "John Smith",
-    password: "123161",
-    salt: "123415",
-    role: "member",
-    gym_id: "123",
-  },
 ];
 
 let gymClasses: IClass[] = [

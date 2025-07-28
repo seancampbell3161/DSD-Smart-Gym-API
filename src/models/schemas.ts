@@ -1,14 +1,6 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
-const gymSchema = new Schema({
-  name: { type: String, required: true },
-  address: { type: String, required: true },
-  city: { type: String, required: true },
-  zipcode: { type: String, required: true },
-  phone: { type: String, required: true },
-});
-
 const checkInOutSchema = new Schema({
   user_id: { type: String, ref: "User", required: true },
   gym_id: { type: String, ref: "Gym", required: true },
@@ -28,6 +20,5 @@ const qrTokenSchema = new Schema(
   { timestamps: true }
 );
 
-export const Gym = mongoose.model("Gym", gymSchema);
 export const CheckInOut = mongoose.model("CheckInOut", checkInOutSchema);
 export const QRToken = mongoose.model("QRToken", qrTokenSchema);

@@ -1,7 +1,7 @@
 import mongoose, { MongooseError } from "mongoose";
 import { Request, Response } from "express";
 import { User } from "../models/user.model";
-import { Gym } from "../models/schemas";
+import { Gym } from "../models/gym.model";
 import jwt from "jsonwebtoken";
 import { IAuthenticatedRequest } from "../types/interface";
 

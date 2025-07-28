@@ -2,12 +2,20 @@ import mongoose, { MongooseError } from "mongoose";
 import { Request, Response } from "express";
 import { User } from "../models/user.model";
 import { Gym } from "../models/schemas";
+import jwt from "jsonwebtoken";
+import { IAuthenticatedRequest } from "../types/interface";
 
 const crypto = require("crypto");
 
-export const createUser = async (request: Request, response: Response) => {
+const JWT_SECRET = process.env.JWT_SECRET!;
+
+export const createUser = async (
+  request: IAuthenticatedRequest,
+  response: Response
+) => {
   try {
     const user = new User(request.body);
+
     user.salt = `${Date.now()}`;
     user.password = crypto
       .createHash("sha256")
@@ -32,18 +40,147 @@ export const createUser = async (request: Request, response: Response) => {
   }
 };
 
-// export const fetchProfile = async (request: Request, response: Response) => {
-//   try {
-//     const user = await User.findById(userId);
-//     return response.status(201).json({ success: true, profile });
-//   } catch (error) {
-//     return response.status(500).json({ error });
-//   }
-// };
+export const login = async (request: Request, response: Response) => {
+  try {
+    const { email, password } = request.body;
 
-//fetchUserById
-//fetchUsers
-//updateUser
-//updatePassword
-//deleteUser
-//login
+    if (!email || !password) {
+      return response
+        .status(400)
+        .json({ error: "Email and password required" });
+    }
+
+    const user = await User.findById(email);
+
+    if (!user) {
+      return response.status(401).json({ error: "Invalid credentials" });
+    }
+
+    const hash = crypto
+      .createHash("sha256")
+      .update(password + user.salt)
+      .digest("hex");
+
+    if (hash !== user.password) {
+      return response.status(401).json({ error: "Invalid credentials" });
+    }
+
+    const payload = {
+      email: user._id,
+      role: user.role,
+    };
+
+    const jwtToken = jwt.sign(payload, JWT_SECRET);
+
+    return response.status(200).json({ success: true, authToken: jwtToken });
+  } catch (error) {
+    if (error instanceof MongooseError) {
+      return response.status(400).json({ error: error.message });
+    }
+    return response.status(500).json("Internal server error");
+  }
+};
+
+export const fetchAllUsers = async (
+  request: IAuthenticatedRequest,
+  response: Response
+) => {
+  try {
+    const allUsers = await User.find();
+
+    return response.status(201).json({ success: true, allUsers });
+  } catch (error) {
+    if (error instanceof MongooseError) {
+      return response.status(400).json({ error: error.message });
+    }
+    return response.status(500).json("Internal server error");
+  }
+};
+
+export const fetchUserById = async (
+  request: IAuthenticatedRequest,
+  response: Response
+) => {
+  try {
+    const { email } = request.user!;
+
+    const user = await User.findById(email);
+    return response.status(201).json({ success: true, user });
+  } catch (error) {
+    if (error instanceof MongooseError) {
+      return response.status(400).json({ error: error.message });
+    }
+    return response.status(500).json("Internal server error");
+  }
+};
+
+export const updateUser = async (
+  request: IAuthenticatedRequest,
+  response: Response
+) => {
+  try {
+    const { email } = request.params;
+  } catch (error) {
+    if (error instanceof MongooseError) {
+      return response.status(400).json({ error: error.message });
+    }
+    return response.status(500).json("Internal server error");
+  }
+};
+
+export const updatePassword = async (
+  request: IAuthenticatedRequest,
+  response: Response
+) => {
+  try {
+    const { email } = request.user!;
+    const { password } = request.body;
+
+    const user = await User.findById(email);
+
+    if (!user) {
+      return response.status(404).json("User not found");
+    }
+
+    user.salt = `${Date.now()}`;
+    user.password = crypto
+      .createHash("sha256")
+      .update(password + user?.salt)
+      .digest("hex");
+
+    await user.save();
+
+    return response
+      .status(200)
+      .json({ success: true, message: "Password updated" });
+  } catch (error) {
+    if (error instanceof MongooseError) {
+      return response.status(400).json({ error: error.message });
+    }
+    return response.status(500).json("Internal server error");
+  }
+};
+
+export const deleteUser = async (
+  request: IAuthenticatedRequest,
+  response: Response
+) => {
+  try {
+    const { email } = request.user!;
+
+    const deletedUser = await User.findByIdAndDelete(email);
+
+    if (!deletedUser) {
+      return response.status(404).json({ error: "User not found" });
+    }
+
+    return response
+      .status(200)
+      .json({ success: true, message: "User successfully deleted" });
+  } catch (error) {
+    if (error instanceof MongooseError) {
+      return response.status(400).json({ error: error.message });
+    }
+    return response.status(500).json("Internal server error");
+  }
+};

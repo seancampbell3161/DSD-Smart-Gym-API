@@ -120,6 +120,17 @@ export const updateUser = async (
 ) => {
   try {
     const { id } = request.params;
+
+    const updatedUser = await User.findByIdAndUpdate(id, request.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updatedUser) {
+      return response.status(404).json({ error: "User not found" });
+    }
+
+    return response.status(200).json({ updatedUser });
   } catch (error) {
     if (error instanceof MongooseError) {
       return response.status(400).json({ error: error.message });

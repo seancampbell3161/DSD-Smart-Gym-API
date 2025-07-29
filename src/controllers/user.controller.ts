@@ -1,7 +1,7 @@
 import mongoose, { MongooseError } from "mongoose";
 import { Request, Response } from "express";
 import { User } from "../models/user.model";
-import { Gym } from "../models/schemas";
+import { Gym } from "../models/gym.model";
 import jwt from "jsonwebtoken";
 import { IAuthenticatedRequest } from "../types/interface";
 
@@ -30,7 +30,7 @@ export const createUser = async (
 
     await user.save();
 
-    return response.status(201).json({ success: true });
+    return response.status(200).json({ success: true });
   } catch (error) {
     console.log(error);
     if (error instanceof MongooseError) {
@@ -88,7 +88,7 @@ export const fetchAllUsers = async (
   try {
     const allUsers = await User.find();
 
-    return response.status(201).json({ success: true, allUsers });
+    return response.status(200).json({ allUsers });
   } catch (error) {
     if (error instanceof MongooseError) {
       return response.status(400).json({ error: error.message });
@@ -102,10 +102,10 @@ export const fetchUserById = async (
   response: Response
 ) => {
   try {
-    const { email } = request.user!;
+    const { id } = request.params;
 
-    const user = await User.findById(email);
-    return response.status(201).json({ success: true, user });
+    const user = await User.findById(id);
+    return response.status(200).json({ user });
   } catch (error) {
     if (error instanceof MongooseError) {
       return response.status(400).json({ error: error.message });
@@ -119,7 +119,18 @@ export const updateUser = async (
   response: Response
 ) => {
   try {
-    const { email } = request.params;
+    const { id } = request.params;
+
+    const updatedUser = await User.findByIdAndUpdate(id, request.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updatedUser) {
+      return response.status(404).json({ error: "User not found" });
+    }
+
+    return response.status(200).json({ updatedUser });
   } catch (error) {
     if (error instanceof MongooseError) {
       return response.status(400).json({ error: error.message });
@@ -133,10 +144,10 @@ export const updatePassword = async (
   response: Response
 ) => {
   try {
-    const { email } = request.user!;
+    const { id } = request.params;
     const { password } = request.body;
 
-    const user = await User.findById(email);
+    const user = await User.findById(id);
 
     if (!user) {
       return response.status(404).json("User not found");
@@ -166,9 +177,9 @@ export const deleteUser = async (
   response: Response
 ) => {
   try {
-    const { email } = request.user!;
+    const { id } = request.params;
 
-    const deletedUser = await User.findByIdAndDelete(email);
+    const deletedUser = await User.findByIdAndDelete(id);
 
     if (!deletedUser) {
       return response.status(404).json({ error: "User not found" });

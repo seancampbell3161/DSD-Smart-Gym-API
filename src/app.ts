@@ -6,7 +6,7 @@ import userRoutes from "./routes/user.routes";
 import gymRoutes from "./routes/gyms";
 import qrcodeRoutes from "./routes/qrcodes";
 import checkinoutRoutes from "./routes/checkInOut";
-import { seed } from "./seeds/user.seed";
+import { seed } from "./seeds/seed";
 
 dotenv.config();
 

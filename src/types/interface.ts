@@ -9,6 +9,28 @@ export interface IUser {
   gym_id: string;
 }
 
+export interface IGym {
+  _id: string;
+  name: string;
+  address: string;
+  city: string;
+  zipcode: string;
+  phone: string;
+}
+
+export interface IClass {
+  _id: string;
+  title: string;
+  description: string;
+  trainer_id: string;
+  gym_id: string;
+  date: Date;
+  start_time: string;
+  end_time: string;
+  attendees: number;
+  capacity: number;
+}
+
 export interface IJwtPayload {
   email: string;
   role: "admin" | "member" | "trainer";

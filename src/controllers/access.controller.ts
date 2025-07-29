@@ -2,6 +2,7 @@ import { Response } from "express";
 import { MongooseError } from "mongoose";
 import { CheckInOut, QRCode } from "../models/access.model";
 import crypto from "crypto";
+import { IAuthenticatedRequest } from "../types/interface";
 
 export const createQRCode = async (
   request: IAuthenticatedRequest,

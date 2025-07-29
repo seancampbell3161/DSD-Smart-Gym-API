@@ -7,6 +7,7 @@ import gymRoutes from "./routes/gyms";
 import qrcodeRoutes from "./routes/qrcodes";
 import checkinoutRoutes from "./routes/checkInOut";
 import { seed } from "./seeds/seed";
+import cafeInventoryRoutes from "./routes/cafeInventory.routes";
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.use(express.json());
 connectDB();
 
 app.use("/api/users", userRoutes);
+app.use("/api/cafe-inventory", cafeInventoryRoutes);
 // app.use("/api/gyms", gymRoutes);
 // app.use("/api/qrCodes", qrcodeRoutes);
 // app.use("/api/checkInOut", checkinoutRoutes);

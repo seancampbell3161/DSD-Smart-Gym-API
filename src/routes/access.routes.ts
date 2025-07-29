@@ -9,3 +9,5 @@ const router = express.Router();
 
 router.post("/generateQRCode", requireAuth, createQRCode);
 router.post("/checkInOut", requireAuth, handleCheckInOut);
+
+export default router;

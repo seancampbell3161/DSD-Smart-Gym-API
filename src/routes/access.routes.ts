@@ -3,6 +3,7 @@ import {
   createQRCode,
   handleCheckInOut,
 } from "../controllers/access.controller";
+import { requireAuth } from "../middleware/requireAuth";
 
 const router = express.Router();
 

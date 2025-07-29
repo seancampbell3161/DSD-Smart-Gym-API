@@ -19,9 +19,9 @@ router.post("/login", login);
 router.get("/", requireAuth, requireRole(["admin"]), fetchAllUsers);
 router.get("/profile", requireAuth, fetchUserById);
 
-router.put("/", requireAuth, updateUser);
-router.put("/password", requireAuth, updatePassword);
+router.put("/:id", requireAuth, updateUser);
+router.put("/:id/password", requireAuth, updatePassword);
 
-router.delete("/", requireAuth, deleteUser);
+router.delete("/:id", requireAuth, deleteUser);
 
 export default router;

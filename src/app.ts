@@ -2,11 +2,11 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { connectDB } from "./connectDB";
-import { clerkMiddleware } from "@clerk/express";
-import profileRoutes from "./routes/profiles";
+import userRoutes from "./routes/user.routes";
 import gymRoutes from "./routes/gyms";
 import qrcodeRoutes from "./routes/qrcodes";
 import checkinoutRoutes from "./routes/checkInOut";
+import { seed } from "./seeds/seed";
 
 dotenv.config();
 
@@ -20,13 +20,17 @@ app.use(
 );
 
 app.use(express.json());
-app.use(clerkMiddleware());
 
 connectDB();
 
-app.use("/api/profiles", profileRoutes);
-app.use("/api/gyms", gymRoutes);
-app.use("/api/qrCodes", qrcodeRoutes);
-app.use("/api/checkInOut", checkinoutRoutes);
+app.use("/api/users", userRoutes);
+// app.use("/api/gyms", gymRoutes);
+// app.use("/api/qrCodes", qrcodeRoutes);
+// app.use("/api/checkInOut", checkinoutRoutes);
 
-export default app;
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+  seed();
+});

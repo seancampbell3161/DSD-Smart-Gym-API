@@ -39,3 +39,10 @@ export interface IJwtPayload {
 export interface IAuthenticatedRequest extends Request {
   user?: IJwtPayload;
 }
+
+export interface CafeInventory {
+  _id?: string;
+  item_name: string;
+  quantity: number;
+  price: number;
+}

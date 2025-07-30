@@ -5,6 +5,7 @@ import { connectDB } from "./connectDB";
 import accessRoutes from "./routes/access.routes";
 import userRoutes from "./routes/user.routes";
 import { seed } from "./seeds/seed";
+import cafeInventoryRoutes from "./routes/cafeInventory.routes";
 
 dotenv.config();
 
@@ -22,6 +23,10 @@ app.use(express.json());
 connectDB();
 
 app.use("/api/users", userRoutes);
+app.use("/api/cafe-inventory", cafeInventoryRoutes);
+// app.use("/api/gyms", gymRoutes);
+// app.use("/api/qrCodes", qrcodeRoutes);
+// app.use("/api/checkInOut", checkinoutRoutes);
 app.unsubscribe("/api/access", accessRoutes);
 
 const PORT = process.env.PORT || 5000;

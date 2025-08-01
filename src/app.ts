@@ -7,6 +7,7 @@ import userRoutes from "./routes/user.routes";
 import classRoutes from "./routes/class.routes";
 import { seed } from "./seeds/seed";
 import cafeInventoryRoutes from "./routes/cafeInventory.routes";
+// import qrcodeRoutes from "./routes/qrcodes";
 
 dotenv.config();
 

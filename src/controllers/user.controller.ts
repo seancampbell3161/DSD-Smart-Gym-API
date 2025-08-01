@@ -50,7 +50,8 @@ export const login = async (request: Request, response: Response) => {
         .json({ error: "Email and password required" });
     }
 
-    const user = await User.findById(email);
+    const user = await User.findById(email); 
+
 
     if (!user) {
       return response.status(401).json({ error: "Invalid credentials" });
@@ -72,7 +73,12 @@ export const login = async (request: Request, response: Response) => {
 
     const jwtToken = jwt.sign(payload, JWT_SECRET);
 
-    return response.status(200).json({ success: true, authToken: jwtToken });
+    // ✅ Return gym_id with the token
+    return response.status(200).json({
+      success: true,
+      authToken: jwtToken,
+      gym_id: user.gym_id,
+    });
   } catch (error) {
     if (error instanceof MongooseError) {
       return response.status(400).json({ error: error.message });

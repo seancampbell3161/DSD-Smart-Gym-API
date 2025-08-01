@@ -6,6 +6,7 @@ import accessRoutes from "./routes/access.routes";
 import userRoutes from "./routes/user.routes";
 import { seed } from "./seeds/seed";
 import cafeInventoryRoutes from "./routes/cafeInventory.routes";
+// import qrcodeRoutes from "./routes/qrcodes";
 
 dotenv.config();
 
@@ -27,7 +28,7 @@ app.use("/api/cafe-inventory", cafeInventoryRoutes);
 // app.use("/api/gyms", gymRoutes);
 // app.use("/api/qrCodes", qrcodeRoutes);
 // app.use("/api/checkInOut", checkinoutRoutes);
-app.unsubscribe("/api/access", accessRoutes);
+app.use("/api/access", accessRoutes);
 
 const PORT = process.env.PORT || 5000;
 

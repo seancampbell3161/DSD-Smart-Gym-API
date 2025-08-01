@@ -8,6 +8,9 @@ export const createQRCode = async (
   request: IAuthenticatedRequest,
   response: Response
 ) => {
+  console.log("createQRCode HIT");
+  console.log("req.user:", request.user);
+  console.log("gym_id:", request.body.gym_id);
   try {
     const { email } = request.user!;
     const { gym_id } = request.body;

@@ -13,4 +13,20 @@ const classSchema = new Schema({
   capacity: { type: Number, required: true },
 });
 
+const classBookingSchema = new Schema(
+  {
+    class_id: { type: Schema.Types.ObjectId, ref: "Class", required: true },
+    profile_id: { type: String, ref: "Profile", required: true },
+  },
+  { timestamps: true }
+);
+
+const waitlistSchema = new Schema({
+  class_id: { type: Schema.Types.ObjectId, ref: "Class", required: true },
+  profile_id: { type: String, ref: "Profile", required: true },
+  joined_at: { type: Date, default: Date.now },
+});
+
 export const Class = mongoose.model("Class", classSchema);
+export const ClassBooking = mongoose.model("ClassBooking", classBookingSchema);
+export const Waitlist = mongoose.model("Waitlist", waitlistSchema);

@@ -1,0 +1,77 @@
+<mjml>
+  <mj-head>
+    <mj-title>Waitlist Spot Available - Smart Gym</mj-title>
+    <mj-preview>Your spot opened up for a class!</mj-preview>
+    <mj-style>
+      .button { background-color: #4CAF50; color: white !important;
+      text-decoration: none; padding: 12px 24px; border-radius: 4px; display:
+      inline-block; font-weight: bold; }
+    </mj-style>
+  </mj-head>
+  <mj-body background-color="#f0f0f0" font-family="Arial, sans-serif">
+    <mj-section>
+      <mj-column>
+        <mj-text
+          font-size="20px"
+          font-weight="bold"
+          color="#333333"
+          padding-bottom="10px"
+        >
+          Good news, {{name}}!
+        </mj-text>
+        <mj-text
+          font-size="16px"
+          color="#555555"
+          line-height="24px"
+          padding-bottom="20px"
+        >
+          A spot has opened up for the <strong>{{class}}</strong> class.
+        </mj-text>
+        <mj-text
+          font-size="16px"
+          color="#555555"
+          line-height="24px"
+          padding-bottom="20px"
+        >
+          You are now officially an attendee.
+        </mj-text>
+        <mj-text
+          font-size="16px"
+          color="#555555"
+          line-height="24px"
+          padding-bottom="30px"
+        >
+          If you no longer want to attend this class, please sign in to your
+          account to leave the class.
+        </mj-text>
+        <mj-button
+          href="{{signInUrl}}"
+          background-color="#4CAF50"
+          color="white"
+          font-weight="bold"
+          border-radius="4px"
+          padding="12px 0"
+        >
+          Sign In to Manage Your Classes
+        </mj-button>
+        <mj-text
+          font-size="12px"
+          color="#999999"
+          line-height="22px"
+          padding-top="30px"
+        >
+          If you have any questions, feel free to reply to this email or contact
+          our support team.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section padding="10px" background-color="#f0f0f0">
+      <mj-column>
+        <mj-text font-size="12px" color="#888888" align="center">
+          © {{currentYear}} Smart Gym App. All rights reserved.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

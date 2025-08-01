@@ -4,7 +4,7 @@ import {
   bulkCreateInventory,
   updateBulkInventoryItems,
   bulkDeleteInventory,
-} from "../controllers/cafeInventoryController";
+} from "../controllers/cafeInventory.controller";
 import { requireAuth } from "../middleware/requireAuth";
 import { requireRole } from "../middleware/requireRole";
 

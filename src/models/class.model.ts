@@ -15,15 +15,15 @@ const classSchema = new Schema({
 
 const classBookingSchema = new Schema(
   {
-    class_id: { type: Schema.Types.ObjectId, ref: "Class", required: true },
-    profile_id: { type: String, ref: "Profile", required: true },
+    class_id: { type: String, required: true },
+    user_id: { type: String, required: true },
   },
   { timestamps: true }
 );
 
 const waitlistSchema = new Schema({
-  class_id: { type: Schema.Types.ObjectId, ref: "Class", required: true },
-  profile_id: { type: String, ref: "Profile", required: true },
+  class_id: { type: String, required: true },
+  user_id: { type: String, required: true },
   joined_at: { type: Date, default: Date.now },
 });
 

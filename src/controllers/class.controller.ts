@@ -6,12 +6,13 @@ import mjml2html from "mjml";
 import fs from "fs";
 import { User } from "../models/user.model";
 
+const user = process.env.NODE_USER;
 const password = process.env.NODE_PASS;
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: "noreplysmartgym@gmail.com",
+    user: user,
     pass: password,
   },
 });

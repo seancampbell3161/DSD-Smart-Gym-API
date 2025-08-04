@@ -75,7 +75,6 @@ export const login = async (request: Request, response: Response) => {
 
     // ✅ Return gym_id with the token
     return response.status(200).json({
-      success: true,
       authToken: jwtToken,
       gym_id: user.gym_id,
     });

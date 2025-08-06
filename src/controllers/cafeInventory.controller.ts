@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { CafeInventory } from "../models/cafeInventoy.model";
+import { CafeInventory } from "../models/cafeInventory.model";
 import { v4 as uuidv4 } from "uuid";
 import { CafeInventory as CafeInventoryType } from "../types/interface";
 

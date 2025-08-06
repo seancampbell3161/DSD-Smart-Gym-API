@@ -6,7 +6,7 @@ import accessRoutes from "./routes/access.routes";
 import userRoutes from "./routes/user.routes";
 import { seed } from "./seeds/seed";
 import cafeInventoryRoutes from "./routes/cafeInventory.routes";
-
+import adminAnalyticsRoutes from "./routes/adminAnalytics.routes";
 dotenv.config();
 
 const app = express();
@@ -24,6 +24,7 @@ connectDB();
 
 app.use("/api/users", userRoutes);
 app.use("/api/cafe-inventory", cafeInventoryRoutes);
+app.use("/api/adminAnalytics", adminAnalyticsRoutes);
 // app.use("/api/gyms", gymRoutes);
 // app.use("/api/qrCodes", qrcodeRoutes);
 // app.use("/api/checkInOut", checkinoutRoutes);

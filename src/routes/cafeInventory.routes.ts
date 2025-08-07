@@ -6,7 +6,7 @@ import {
   bulkDeleteInventory,
   handleCafePurchase,
 } from "../controllers/cafeInventory.controller";
-import { finalizeCafePurchase } from "../controllers/cafepurchase.controller"; 
+import { finalizeCafePurchase } from "../controllers/cafepurchase.controller";
 import { requireAuth } from "../middleware/requireAuth";
 import { requireRole } from "../middleware/requireRole";
 

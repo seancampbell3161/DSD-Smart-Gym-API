@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { CafeInventory } from "../models/cafeInventory.model";
 import { v4 as uuidv4 } from "uuid";
 import { CafeInventory as CafeInventoryType } from "../types/interface";
+
 import { makeInventoryTag } from "../utils/etag";
 
 export const getCafeInventory = async (req: Request, res: Response) => {
@@ -21,10 +22,14 @@ export const getCafeInventory = async (req: Request, res: Response) => {
       data: items
     });
   } catch {
+    res.status(200).json({
+      message: "Inventory fetched successfully",
+      data: items,
+    });
+  } catch (error) {
     res.status(500).json({ error: "Failed to fetch inventory" });
   }
 };
-
 
 export const bulkCreateInventory = async (
   req: Request<{}, {}, CafeInventoryType[]>,
@@ -135,3 +140,4 @@ export const handleCafePurchase = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Purchase update failed" });
   }
 };
+

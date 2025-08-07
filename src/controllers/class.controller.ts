@@ -1,6 +1,21 @@
 import { Response } from "express";
 import { IAuthenticatedRequest } from "../types/interface";
 import { Class, ClassBooking, Waitlist } from "../models/class.model";
+import nodemailer from "nodemailer";
+import mjml2html from "mjml";
+import fs from "fs";
+import { User } from "../models/user.model";
+
+const user = process.env.NODE_USER;
+const password = process.env.NODE_PASS;
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: user,
+    pass: password,
+  },
+});
 
 export const createClass = async (
   request: IAuthenticatedRequest,
@@ -47,7 +62,7 @@ export const joinClass = async (
 
     const alreadyBooked = await ClassBooking.findOne({
       class_id: id,
-      profile_id: email,
+      user_id: email,
     });
 
     if (alreadyBooked) {
@@ -58,7 +73,7 @@ export const joinClass = async (
 
     const alreadyWaitlisted = await Waitlist.findOne({
       class_id: id,
-      profile_id: email,
+      user_id: email,
     });
 
     if (alreadyWaitlisted) {
@@ -70,7 +85,7 @@ export const joinClass = async (
     if (gymClass.attendees >= gymClass.capacity) {
       await Waitlist.create({
         class_id: id,
-        profile_id: email,
+        user_id: email,
       });
 
       return response
@@ -80,7 +95,7 @@ export const joinClass = async (
 
     await ClassBooking.create({
       class_id: id,
-      profile_id: email,
+      user_id: email,
     });
 
     await Class.findByIdAndUpdate(id, { $inc: { attendees: 1 } });
@@ -105,7 +120,7 @@ export const leaveClass = async (
   try {
     const hasBooking = await ClassBooking.findByIdAndDelete({
       class_id: id,
-      profile_id: email,
+      user_id: email,
     });
 
     if (hasBooking) {
@@ -127,19 +142,40 @@ export const leaveClass = async (
 
       await ClassBooking.create({
         class_id: id,
-        profile_id: nextInLine.profile_id,
+        user_id: nextInLine.user_id,
       });
 
       await Class.findByIdAndUpdate(id, { $inc: { attendees: 1 } });
 
-      return response
-        .status(200)
-        .json({ message: "Successfully left the class." });
+      const nextInLineProfile = await User.findById(nextInLine.user_id);
+
+      if (!nextInLineProfile) {
+        return response
+          .status(400)
+          .json({ error: "Couldn't find waitlist profile" });
+      }
+
+      const rawTemplate = fs.readFileSync("waitlist.mjml", "utf-8");
+
+      const personalizedMJML = rawTemplate
+        .replace("{{name}}", nextInLineProfile.name)
+        .replace("{{class}}", gymClass.title);
+
+      const { html } = mjml2html(personalizedMJML);
+
+      await transporter.sendMail({
+        from: "'Smart Gym' <noreplysmartgym@gmail.com>",
+        to: nextInLine.user_id,
+        subject: `You're in! A spot opened up for your SmartGym Class: ${gymClass.title}`,
+        html,
+      });
+
+      return response.status(200);
     }
 
     const isWaitlisted = await Waitlist.findByIdAndDelete({
       class_id: id,
-      profile_id: email,
+      user_id: email,
     });
 
     if (isWaitlisted) {

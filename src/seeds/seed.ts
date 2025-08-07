@@ -2,6 +2,7 @@ import { Class } from "../models/class.model";
 import { Gym } from "../models/gym.model";
 import { User } from "../models/user.model";
 import { IClass, IGym, IUser } from "../types/interface";
+import { CheckInOut } from "../models/access.model";
 
 const crypto = require("crypto");
 
@@ -81,6 +82,64 @@ let gymClasses: IClass[] = [
   },
 ];
 
+const DEMO23_COUNT = 3;
+// how many check-ins per new member
+const DEMO23_CHECKINS_EACH = 2;
+// date helper
+const makeDate = (y: number, m: number, d: number, h = 10) =>
+  new Date(y, m /*0-11*/, d, h, 0, 0);
+
+// ---------- 2023 members -----------
+const demo2023Members: IUser[] = Array.from(
+  { length: DEMO23_COUNT },
+  (_, i) => ({
+    _id: `demo23_${i}@mail.com`,
+    name: `Demo 23-${i}`,
+    password: "changeme",
+    salt: "na",
+    role: "member",
+    gym_id: "123",
+    createdAt: makeDate(2023, i * 3, 10), // Jan, Apr, Jul
+  })
+);
+
+// ---------- 2023 yoga class --------
+const yoga2023: IClass = {
+  _id: "yoga-2023-07-20",
+  title: "Yoga",
+  description: "Summer yoga demo class",
+  trainer_id: "trainer1@email.com",
+  gym_id: "123",
+  date: makeDate(2023, 6, 20), // 20 Jul 2023
+  start_time: "10:00",
+  end_time: "11:00",
+  attendees: 8,
+  capacity: 15,
+};
+
+// ---------- 2023 check-ins ----------
+type Check = {
+  user_id: string;
+  gym_id: string;
+  checked_in: Date;
+  checked_out: Date;
+};
+const demo23Checkins: Check[] = [];
+
+demo2023Members.forEach((member) => {
+  for (let n = 0; n < DEMO23_CHECKINS_EACH; n++) {
+    const inTime = makeDate(2023, 6, 15 + n, 8 + n); // 15 & 16 Jul
+    const outTime = new Date(inTime);
+    outTime.setHours(outTime.getHours() + 1);
+    demo23Checkins.push({
+      user_id: member._id,
+      gym_id: "123",
+      checked_in: inTime,
+      checked_out: outTime,
+    });
+  }
+});
+
 export const seed = async () => {
   const existingGym = await Gym.findById(gym._id);
   if (!existingGym) {
@@ -108,5 +167,49 @@ export const seed = async () => {
 
     const newClass = new Class(gymClass);
     await newClass.save();
+  }
+
+  for (const mem of demo2023Members) {
+    const found = await User.findById(mem._id);
+    if (!found) {
+      mem.salt = `${Date.now()}`;
+      mem.password = crypto
+        .createHash("sha256")
+        .update(mem.password + mem.salt)
+        .digest("hex");
+      await new User(mem).save();
+    }
+  }
+
+  // add the yoga class
+  const exists2023 = await Class.findById(yoga2023._id);
+  if (!exists2023) await new Class(yoga2023).save();
+
+  // if (demo23Checkins.length) {
+  //   const withIds = demo23Checkins.map((c, idx) => ({
+  //     ...c,
+  //     _id: `${c.user_id}-ci${idx}`, // ensure unique _id
+  //   }));
+  //   await CheckInOut.insertMany(withIds, { ordered: false });
+  // }
+
+  if (demo23Checkins.length) {
+    const ops = demo23Checkins.map((c, idx) => ({
+      updateOne: {
+        filter: { _id: `${c.user_id}-ci${idx}` }, // look for existing row
+        update: {
+          $setOnInsert: {
+            _id: `${c.user_id}-ci${idx}`,
+            user_id: c.user_id,
+            gym_id: c.gym_id,
+            checked_in: c.checked_in,
+            checked_out: c.checked_out,
+          },
+        },
+        upsert: true,
+      },
+    }));
+
+    await CheckInOut.bulkWrite(ops); // <-- this replaces insertMany
   }
 };

@@ -17,17 +17,21 @@
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
+    "mjml": "^4.15.3",
     "mongodb": "^6.17.0",
     "mongoose": "^8.16.3",
     "stripe": "^18.4.0",
+    "nodemailer": "^7.0.5",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/mjml": "^4.7.4",
     "@types/mongoose": "^5.11.97",
     "@types/node": "^24.0.14",
+    "@types/nodemailer": "^6.4.17",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"

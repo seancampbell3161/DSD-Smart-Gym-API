@@ -8,6 +8,8 @@ import classRoutes from "./routes/class.routes";
 import cafeInventoryRoutes from "./routes/cafeInventory.routes";
 import stripeRoutes from "./routes/stripe.routes";
 import { seed } from "./seeds/seed";
+import adminAnalyticsRoutes from "./routes/adminAnalytics.routes";
+// import qrcodeRoutes from "./routes/qrcodes";
 
 dotenv.config();
 const app = express();
@@ -28,6 +30,11 @@ app.get("/", (req, res) => res.send("API is running..."));
 
 app.use("/api/users", userRoutes);
 app.use("/api/cafe-inventory", cafeInventoryRoutes);
+app.use("/api/adminAnalytics", adminAnalyticsRoutes);
+// app.use("/api/gyms", gymRoutes);
+// app.use("/api/qrCodes", qrcodeRoutes);
+// app.use("/api/checkInOut", checkinoutRoutes);
+app.unsubscribe("/api/access", accessRoutes);
 app.use("/api/classes", classRoutes);
 app.use("/api/access", accessRoutes);
 app.use("/api/stripe", stripeRoutes);

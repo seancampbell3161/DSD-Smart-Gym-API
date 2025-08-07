@@ -32,6 +32,7 @@ export interface IClass {
 }
 
 export interface IJwtPayload {
+  id: string;
   email: string;
   role: "admin" | "member" | "trainer";
 }
@@ -45,4 +46,7 @@ export interface CafeInventory {
   item_name: string;
   quantity: number;
   price: number;
+}
+export interface CafeCartItem extends CafeInventory {
+  quantityOrdered: number;
 }

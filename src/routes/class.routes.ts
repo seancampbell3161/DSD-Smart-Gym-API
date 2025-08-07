@@ -2,6 +2,7 @@ import express from "express";
 import {
   createClass,
   fetchClasses,
+  fetchUserClasses,
   joinClass,
   leaveClass,
 } from "../controllers/class.controller";
@@ -15,5 +16,6 @@ router.post("/:id/join", requireAuth, joinClass);
 router.post("/:id/leave", requireAuth, leaveClass);
 
 router.get("/", requireAuth, fetchClasses);
+router.get("/userClasses", requireAuth, fetchUserClasses);
 
 export default router;

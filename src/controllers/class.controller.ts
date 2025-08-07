@@ -46,6 +46,24 @@ export const fetchClasses = async (
   }
 };
 
+export const fetchUserClasses = async (
+  request: IAuthenticatedRequest,
+  response: Response
+) => {
+  try {
+    const { email } = request.user!;
+
+    const userBookedClasses = await ClassBooking.find({ user_id: email });
+
+    const userWaitlistClasses = await Waitlist.find({ user_id: email });
+    return response
+      .status(200)
+      .json({ userBookedClasses, userWaitlistClasses });
+  } catch (error) {
+    return response.status(500).json({ error });
+  }
+};
+
 export const joinClass = async (
   request: IAuthenticatedRequest,
   response: Response

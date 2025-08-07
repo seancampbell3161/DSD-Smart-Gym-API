@@ -3,7 +3,7 @@ import { CafeInventory } from "../models/cafeInventory.model";
 import { v4 as uuidv4 } from "uuid";
 import { CafeInventory as CafeInventoryType } from "../types/interface";
 
-export const getCafeInventory = async (_req: Request, res: Response) => {
+export const getCafeInventory = async (req: Request, res: Response) => {
   try {
     const items = await CafeInventory.find();
 

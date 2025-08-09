@@ -3,10 +3,25 @@ import { CafeInventory } from "../models/cafeInventory.model";
 import { v4 as uuidv4 } from "uuid";
 import { CafeInventory as CafeInventoryType } from "../types/interface";
 
+import { makeInventoryTag } from "../utils/etag";
+
 export const getCafeInventory = async (req: Request, res: Response) => {
   try {
-    const items = await CafeInventory.find();
+    const items = await CafeInventory.find().sort({ item_name: 1 }).lean();
+    const tag = makeInventoryTag(items);
 
+    if (req.headers["if-none-match"] === tag) {
+      return res.status(304).end(); // No change, no data sent
+    }
+
+    res.setHeader("ETag", tag);
+    res.setHeader("Cache-Control", "public, max-age=30"); // 30 sec cache
+
+    res.status(200).json({
+      message: "Inventory fetched successfully",
+      data: items
+    });
+  } catch {
     res.status(200).json({
       message: "Inventory fetched successfully",
       data: items,
@@ -99,3 +114,30 @@ export const bulkDeleteInventory = async (
     res.status(500).json({ error: "Bulk delete failed" });
   }
 };
+export const handleCafePurchase = async (req: Request, res: Response) => {
+  const { cart } = req.body;
+
+  if (!Array.isArray(cart) || cart.length === 0) {
+    return res.status(400).json({ error: "Cart must be a non-empty array" });
+  }
+
+  try {
+    const operations = cart.map((item) => ({
+      updateOne: {
+        filter: { _id: item._id },
+        update: { $inc: { quantity: -item.quantityOrdered } },
+      },
+    }));
+
+    const result = await CafeInventory.bulkWrite(operations);
+
+    res.status(200).json({
+      message: "Inventory updated after purchase",
+      modifiedCount: result.modifiedCount,
+    });
+  } catch (error) {
+    console.error("❌ Failed to update inventory after purchase:", error);
+    res.status(500).json({ error: "Purchase update failed" });
+  }
+};
+

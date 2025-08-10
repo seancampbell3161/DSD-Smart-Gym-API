@@ -15,7 +15,7 @@ export const getCafeInventory = async (req: Request, res: Response) => {
     }
 
     res.setHeader("ETag", tag);
-    res.setHeader("Cache-Control", "public, max-age=30"); // 30 sec cache
+    res.setHeader("Cache-Control", "public, max-age=30");
 
     res.status(200).json({
       message: "Inventory fetched successfully",
@@ -94,18 +94,14 @@ export const bulkDeleteInventory = async (
   try {
     const items = req.body;
 
-    // console.log(items);
-
     const operations = items.map((item) => ({
       deleteOne: {
         filter: { _id: item._id },
       },
     }));
 
-    // console.log(operations);
     const result = await CafeInventory.bulkWrite(operations);
 
-    // console.log(result);
     res.status(200).json({
       message: "Inventory items deleted successfully",
       deletedCount: result.deletedCount,
@@ -114,14 +110,20 @@ export const bulkDeleteInventory = async (
     res.status(500).json({ error: "Bulk delete failed" });
   }
 };
-export const handleCafePurchase = async (req: Request, res: Response) => {
-  const { cart } = req.body;
+
+/**
+ * ✅ Combined stock decrement + receipt return
+ * Replaces handleCafePurchase & finalizeCafePurchase
+ */
+export const checkoutSuccess = async (req: Request, res: Response) => {
+  const { cart, total } = req.body;
 
   if (!Array.isArray(cart) || cart.length === 0) {
     return res.status(400).json({ error: "Cart must be a non-empty array" });
   }
 
   try {
+    // 1️⃣ Decrement stock
     const operations = cart.map((item) => ({
       updateOne: {
         filter: { _id: item._id },
@@ -129,15 +131,21 @@ export const handleCafePurchase = async (req: Request, res: Response) => {
       },
     }));
 
-    const result = await CafeInventory.bulkWrite(operations);
+    await CafeInventory.bulkWrite(operations);
 
+    // 2️⃣ Fetch updated inventory
+    const updatedInventory = await CafeInventory.find().sort({ item_name: 1 }).lean();
+
+    // 3️⃣ Send back receipt + updated inventory
     res.status(200).json({
-      message: "Inventory updated after purchase",
-      modifiedCount: result.modifiedCount,
+      message: "Checkout processed successfully",
+      items: cart,
+      total,
+      updatedInventory
     });
   } catch (error) {
-    console.error("❌ Failed to update inventory after purchase:", error);
-    res.status(500).json({ error: "Purchase update failed" });
+    console.error("❌ Failed to process checkout:", error);
+    res.status(500).json({ error: "Checkout processing failed" });
   }
 };
 

@@ -1,29 +1,35 @@
-import { Response } from "express";
-import { IAuthenticatedRequest } from "../types/interface";
-import { CafePurchase } from "../models/cafepurchase.model";
+// controllers/stripe.controller.ts
+import { Request, Response } from "express";
+import Stripe from "stripe";
 
-export const getCheckoutDetails = async (req: IAuthenticatedRequest, res: Response) => {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2025-07-30.basil",
+});
+
+export const createCheckoutSession = async (req: Request, res: Response) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+    const { cart, success_url, cancel_url } = req.body;
 
-    const { id } = req.user;
-
-    const lastPurchase = await CafePurchase.findOne({ userId: id })
-      .sort({ createdAt: -1 })
-      .lean();
-
-    if (!lastPurchase) {
-      return res.status(404).json({ error: "No recent purchase found." });
-    }
-
-    res.status(200).json({
-      items: lastPurchase.items,
-      total: lastPurchase.total,
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: cart.map((item: any) => ({
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: item.item_name,
+          },
+          unit_amount: item.price * 100,
+        },
+        quantity: item.quantityOrdered,
+      })),
+      mode: "payment",
+      success_url: success_url || "http://localhost:5173/cafe?checkout=success",
+      cancel_url: cancel_url || "http://localhost:5173/cafe?checkout=cancel",
     });
-  } catch (err) {
-    console.error("❌ Receipt fetch failed:", err);
-    res.status(500).json({ error: "Failed to retrieve receipt" });
+
+    res.status(200).json({ url: session.url });
+  } catch (error) {
+    console.error("❌ Stripe session error:", error);
+    res.status(500).json({ error: "Stripe session failed" });
   }
 };

@@ -12,9 +12,14 @@ export const finalizeCafePurchase = async (req: IAuthenticatedRequest, res: Resp
   }
 
   try {
+    const mappedItems = cart.map(item => ({
+      name: item.item_name,
+      qty: item.quantityOrdered,
+      price: item.price,
+    }));
     const newPurchase = await CafePurchase.create({
       userId,
-      items: cart,
+      items: mappedItems,
       total,
     });
 

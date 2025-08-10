@@ -15,6 +15,23 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 router.post("/create-checkout-session", requireAuth, async (req, res) => {
   const { cart } = req.body;
 
+  // Input validation for cart
+  if (
+    !Array.isArray(cart) ||
+    cart.length === 0 ||
+    !cart.every(
+      (item) =>
+        item &&
+        typeof item.item_name === "string" &&
+        typeof item.image === "string" &&
+        typeof item.price === "number" &&
+        typeof item.quantityOrdered === "number" &&
+        item.price > 0 &&
+        item.quantityOrdered > 0
+    )
+  ) {
+    return res.status(400).json({ error: "Invalid cart format. Cart must be a non-empty array of valid items." });
+  }
   const line_items = cart.map((item: CafeCartItem) => ({
     price_data: {
       currency: "usd",

@@ -15,7 +15,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 router.post("/create-checkout-session", requireAuth, async (req, res) => {
   const { cart } = req.body;
 
-  const line_items = cart.map((item: any) => ({
+  const line_items = cart.map((item: CafeCartItem) => ({
     price_data: {
       currency: "usd",
       product_data: {

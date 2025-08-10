@@ -1,9 +1,10 @@
+// src/controllers/cafeInventory.controller.ts
 import { Request, Response } from "express";
 import { CafeInventory } from "../models/cafeInventory.model";
 import { v4 as uuidv4 } from "uuid";
 import { CafeInventory as CafeInventoryType } from "../types/interface";
-
 import { makeInventoryTag } from "../utils/etag";
+
 
 export const getCafeInventory = async (req: Request, res: Response) => {
   try {
@@ -11,23 +12,19 @@ export const getCafeInventory = async (req: Request, res: Response) => {
     const tag = makeInventoryTag(items);
 
     if (req.headers["if-none-match"] === tag) {
-      return res.status(304).end(); // No change, no data sent
+      return res.status(304).end(); // No change
     }
 
     res.setHeader("ETag", tag);
     res.setHeader("Cache-Control", "public, max-age=30");
 
-    res.status(200).json({
-      message: "Inventory fetched successfully",
-      data: items
-    });
-  } catch {
-    res.status(200).json({
+    return res.status(200).json({
       message: "Inventory fetched successfully",
       data: items,
     });
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch inventory" });
+    console.error("getCafeInventory error:", error);
+    return res.status(500).json({ error: "Failed to fetch inventory" });
   }
 };
 
@@ -46,12 +43,14 @@ export const bulkCreateInventory = async (
     }));
 
     const result = await CafeInventory.insertMany(normalizedItems);
-    res.status(201).json({
+
+    return res.status(201).json({
       message: "Inventory items created successfully",
       data: result,
     });
   } catch (error) {
-    res.status(500).json({ error: "Bulk creation failed" });
+    console.error("bulkCreateInventory error:", error);
+    return res.status(500).json({ error: "Bulk creation failed" });
   }
 };
 
@@ -78,12 +77,13 @@ export const updateBulkInventoryItems = async (
 
     const result = await CafeInventory.bulkWrite(operations);
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Inventory updated successfully",
       modifiedCount: result.modifiedCount,
     });
   } catch (error) {
-    res.status(500).json({ error: "Bulk update failed" });
+    console.error("updateBulkInventoryItems error:", error);
+    return res.status(500).json({ error: "Bulk update failed" });
   }
 };
 
@@ -95,27 +95,32 @@ export const bulkDeleteInventory = async (
     const items = req.body;
 
     const operations = items.map((item) => ({
-      deleteOne: {
-        filter: { _id: item._id },
-      },
+      deleteOne: { filter: { _id: item._id } },
     }));
 
     const result = await CafeInventory.bulkWrite(operations);
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Inventory items deleted successfully",
       deletedCount: result.deletedCount,
     });
   } catch (error) {
-    res.status(500).json({ error: "Bulk delete failed" });
+    console.error("bulkDeleteInventory error:", error);
+    return res.status(500).json({ error: "Bulk delete failed" });
   }
 };
 
-/**
- * ✅ Combined stock decrement + receipt return
- * Replaces handleCafePurchase & finalizeCafePurchase
- */
-export const checkoutSuccess = async (req: Request, res: Response) => {
+type CartItem = {
+  _id: string;
+  quantityOrdered: number;
+  item_name?: string;
+  price?: number;
+};
+
+export const checkoutSuccess = async (
+  req: Request<{}, {}, { cart: CartItem[]; total: number }>,
+  res: Response
+) => {
   const { cart, total } = req.body;
 
   if (!Array.isArray(cart) || cart.length === 0) {
@@ -123,29 +128,29 @@ export const checkoutSuccess = async (req: Request, res: Response) => {
   }
 
   try {
-    // 1️⃣ Decrement stock
+    // 1) Decrement stock
     const operations = cart.map((item) => ({
       updateOne: {
         filter: { _id: item._id },
         update: { $inc: { quantity: -item.quantityOrdered } },
       },
     }));
-
     await CafeInventory.bulkWrite(operations);
 
-    // 2️⃣ Fetch updated inventory
-    const updatedInventory = await CafeInventory.find().sort({ item_name: 1 }).lean();
+    // 2) Fetch updated inventory
+    const updatedInventory = await CafeInventory.find()
+      .sort({ item_name: 1 })
+      .lean();
 
-    // 3️⃣ Send back receipt + updated inventory
-    res.status(200).json({
+    
+    return res.status(200).json({
       message: "Checkout processed successfully",
       items: cart,
       total,
-      updatedInventory
+      updatedInventory,
     });
   } catch (error) {
-    console.error("❌ Failed to process checkout:", error);
-    res.status(500).json({ error: "Checkout processing failed" });
+    console.error("checkoutSuccess error:", error);
+    return res.status(500).json({ error: "Checkout processing failed" });
   }
 };
-

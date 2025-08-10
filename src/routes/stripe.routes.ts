@@ -12,7 +12,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 // ✅ POST route to start checkout
-router.post("/create-checkout-session", async (req, res) => {
+router.post("/create-checkout-session", requireAuth, async (req, res) => {
   const { cart } = req.body;
 
   const line_items = cart.map((item: any) => ({

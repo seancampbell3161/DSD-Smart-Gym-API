@@ -12,7 +12,7 @@ const password = process.env.NODE_PASS;
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: user,
+    user,
     pass: password,
   },
 });
@@ -23,10 +23,8 @@ export const createClass = async (
 ) => {
   try {
     const newClass = new Class(request.body);
-
     await newClass.save();
-
-    return response.status(200);
+    return response.sendStatus(200);
   } catch (error) {
     return response.status(500).json({ error });
   }
@@ -36,8 +34,7 @@ export const fetchClasses = async (
   request: IAuthenticatedRequest,
   response: Response
 ) => {
-  const { id } = request.params;
-
+  const { id } = request.params; // gym_id
   try {
     const allClasses = await Class.find({ gym_id: id });
     return response.status(200).json({ allClasses });
@@ -51,11 +48,11 @@ export const fetchUserClasses = async (
   response: Response
 ) => {
   try {
-    const { email } = request.user!;
+    const { id } = request.user!; // canonical user id
 
-    const userBookedClasses = await ClassBooking.find({ user_id: email });
+    const userBookedClasses = await ClassBooking.find({ user_id: id });
+    const userWaitlistClasses = await Waitlist.find({ user_id: id });
 
-    const userWaitlistClasses = await Waitlist.find({ user_id: email });
     return response
       .status(200)
       .json({ userBookedClasses, userWaitlistClasses });
@@ -69,20 +66,18 @@ export const joinClass = async (
   response: Response
 ) => {
   try {
-    const { email } = request.user!;
-    const { id } = request.params;
+    const { id: userId } = request.user!;
+    const { id } = request.params; // class id
 
     const gymClass = await Class.findById(id);
-
     if (!gymClass) {
       return response.status(404).json({ error: "Class not found." });
     }
 
     const alreadyBooked = await ClassBooking.findOne({
       class_id: id,
-      user_id: email,
+      user_id: userId,
     });
-
     if (alreadyBooked) {
       return response
         .status(400)
@@ -91,9 +86,8 @@ export const joinClass = async (
 
     const alreadyWaitlisted = await Waitlist.findOne({
       class_id: id,
-      user_id: email,
+      user_id: userId,
     });
-
     if (alreadyWaitlisted) {
       return response
         .status(400)
@@ -103,17 +97,17 @@ export const joinClass = async (
     if (gymClass.attendees >= gymClass.capacity) {
       await Waitlist.create({
         class_id: id,
-        user_id: email,
+        user_id: userId,
       });
 
       return response
-        .json(200)
+        .status(200)
         .json({ message: "Class is full. You have been waitlisted." });
     }
 
     await ClassBooking.create({
       class_id: id,
-      user_id: email,
+      user_id: userId,
     });
 
     await Class.findByIdAndUpdate(id, { $inc: { attendees: 1 } });
@@ -128,72 +122,68 @@ export const leaveClass = async (
   request: IAuthenticatedRequest,
   response: Response
 ) => {
-  const { id } = request.params;
-  const { email } = request.user!;
+  const { id } = request.params; // class id
+  const { id: userId } = request.user!;
 
   if (!id) {
     return response.status(400).json({ error: "Missing class ID" });
   }
 
   try {
-    const hasBooking = await ClassBooking.findByIdAndDelete({
+    // Remove booking if present
+    const booking = await ClassBooking.findOneAndDelete({
       class_id: id,
-      user_id: email,
+      user_id: userId,
     });
 
-    if (hasBooking) {
+    if (booking) {
+      // Decrement attendees
       await Class.findByIdAndUpdate(id, { $inc: { attendees: -1 } });
 
       const gymClass = await Class.findById(id);
+      if (!gymClass) return response.sendStatus(200);
 
-      if (!gymClass) return;
-      if (gymClass.attendees >= gymClass.capacity) return;
+      // If there's now room, promote next waitlisted user
+      if (gymClass.attendees < gymClass.capacity) {
+        const nextInLine = await Waitlist.findOne({ class_id: id }).sort({
+          createdAt: 1,
+        });
 
-      const nextInLine = await Waitlist.findOne({
-        class_id: id,
-      }).sort({
-        createdAt: 1,
-      });
-      if (!nextInLine) return;
+        if (nextInLine) {
+          await nextInLine.deleteOne();
 
-      await nextInLine.deleteOne();
+          await ClassBooking.create({
+            class_id: id,
+            user_id: nextInLine.user_id,
+          });
 
-      await ClassBooking.create({
-        class_id: id,
-        user_id: nextInLine.user_id,
-      });
+          await Class.findByIdAndUpdate(id, { $inc: { attendees: 1 } });
 
-      await Class.findByIdAndUpdate(id, { $inc: { attendees: 1 } });
+          const nextInLineProfile = await User.findById(nextInLine.user_id);
+          if (nextInLineProfile) {
+            const rawTemplate = fs.readFileSync("waitlist.mjml", "utf-8");
+            const personalizedMJML = rawTemplate
+              .replace("{{name}}", nextInLineProfile.name)
+              .replace("{{class}}", gymClass.title);
+            const { html } = mjml2html(personalizedMJML);
 
-      const nextInLineProfile = await User.findById(nextInLine.user_id);
-
-      if (!nextInLineProfile) {
-        return response
-          .status(400)
-          .json({ error: "Couldn't find waitlist profile" });
+            await transporter.sendMail({
+              from: "'Smart Gym' <noreplysmartgym@gmail.com>",
+              to: nextInLine.user_id, // email = id in your model
+              subject: `You're in! A spot opened up for your SmartGym Class: ${gymClass.title}`,
+              html,
+            });
+          }
+        }
       }
 
-      const rawTemplate = fs.readFileSync("waitlist.mjml", "utf-8");
-
-      const personalizedMJML = rawTemplate
-        .replace("{{name}}", nextInLineProfile.name)
-        .replace("{{class}}", gymClass.title);
-
-      const { html } = mjml2html(personalizedMJML);
-
-      await transporter.sendMail({
-        from: "'Smart Gym' <noreplysmartgym@gmail.com>",
-        to: nextInLine.user_id,
-        subject: `You're in! A spot opened up for your SmartGym Class: ${gymClass.title}`,
-        html,
-      });
-
-      return response.status(200);
+      return response.status(200).json({ message: "Booking canceled." });
     }
 
-    const isWaitlisted = await Waitlist.findByIdAndDelete({
+    // If not booked, try removing from waitlist
+    const isWaitlisted = await Waitlist.findOneAndDelete({
       class_id: id,
-      user_id: email,
+      user_id: userId,
     });
 
     if (isWaitlisted) {
@@ -207,3 +197,4 @@ export const leaveClass = async (
     return response.status(500).json({ error });
   }
 };
+//adding to create a new pr

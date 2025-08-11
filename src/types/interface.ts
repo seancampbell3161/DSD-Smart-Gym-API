@@ -1,11 +1,14 @@
+// src/types/interface.ts
 import { Request } from "express";
 
+export type UserRole = "admin" | "member" | "trainer";
+
 export interface IUser {
-  _id: string;
+  _id: string;           
   name: string;
   password: string;
   salt: string;
-  role: "admin" | "member" | "trainer";
+  role: UserRole;
   gym_id: string;
 }
 
@@ -32,8 +35,11 @@ export interface IClass {
 }
 
 export interface IJwtPayload {
-  email: string;
-  role: "admin" | "member" | "trainer";
+  id: string;          
+  role: UserRole;
+  gym_id?: string;
+  iat?: number;          
+  exp?: number;
 }
 
 export interface IAuthenticatedRequest extends Request {
@@ -45,4 +51,8 @@ export interface CafeInventory {
   item_name: string;
   quantity: number;
   price: number;
+}
+
+export interface CafeCartItem extends CafeInventory {
+  quantityOrdered: number;
 }

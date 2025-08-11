@@ -50,9 +50,7 @@ export const login = async (request: Request, response: Response) => {
         .json({ error: "Email and password required" });
     }
 
-    const user = await User.findById(email); 
-
-
+    const user = await User.findById(email);
     if (!user) {
       return response.status(401).json({ error: "Invalid credentials" });
     }
@@ -66,17 +64,22 @@ export const login = async (request: Request, response: Response) => {
       return response.status(401).json({ error: "Invalid credentials" });
     }
 
+  
     const payload = {
-      email: user._id,
-      role: user.role,
+      id: user._id as string,                 
+      role: user.role as "admin" | "member" | "trainer",
+      gym_id: user.gym_id as string | undefined,
     };
 
-    const jwtToken = jwt.sign(payload, JWT_SECRET);
+    const authToken = jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
 
-    // ✅ Return gym_id with the token
     return response.status(200).json({
-      authToken: jwtToken,
-      gym_id: user.gym_id,
+      authToken,
+      user: {
+        email: user._id,
+        role: user.role,
+        gym_id: user.gym_id,
+      },
     });
   } catch (error) {
     if (error instanceof MongooseError) {

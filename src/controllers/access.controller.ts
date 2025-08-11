@@ -10,20 +10,30 @@ export const createQRCode = async (
 ) => {
   console.log("createQRCode HIT");
   console.log("req.user:", request.user);
-  console.log("gym_id:", request.body.gym_id);
+  console.log("gym_id (body):", request.body.gym_id);
+
   try {
-    const { email } = request.user!;
-    const { gym_id } = request.body;
+    const { id, gym_id: tokenGymId } = request.user!;
+    const { gym_id: bodyGymId } = request.body ?? {};
+    const gym_id = bodyGymId ?? tokenGymId;
+
+    if (!gym_id) {
+      return response.status(400).json({ error: "gym_id is required" });
+    }
 
     const existingQRCode = await QRCode.findOne({
-      user_id: email,
+      user_id: id,
       expires_at: { $gt: new Date() },
     });
 
     if (existingQRCode) {
-      return response
-        .status(201)
-        .json({ success: true, qrCode: existingQRCode.qr_code });
+      return response.status(200).json({
+        success: true,
+        qrCode: {
+          qr_code: existingQRCode.qr_code,
+          expires_at: existingQRCode.expires_at,
+        },
+      });
     }
 
     const qrToken = crypto.randomBytes(12).toString("hex");
@@ -32,15 +42,18 @@ export const createQRCode = async (
 
     const qrCode = new QRCode({
       _id: `${Date.now()}`,
-      user_id: email,
-      gym_id: gym_id,
+      user_id: id,
+      gym_id,
       qr_code: qrToken,
       expires_at: expiresAt,
     });
 
     await qrCode.save();
 
-    return response.status(200).json({ success: true, qrCode: qrCode });
+    return response.status(201).json({
+      success: true,
+      qrCode: { qr_code: qrToken, expires_at: expiresAt },
+    });
   } catch (error) {
     if (error instanceof MongooseError) {
       return response.status(400).json({ error: error.message });
@@ -54,11 +67,16 @@ export const handleCheckInOut = async (
   response: Response
 ) => {
   try {
-    const { email } = request.user!;
-    const { gym_id } = request.body;
+    const { id, gym_id: tokenGymId } = request.user!;
+    const { gym_id: bodyGymId } = request.body ?? {};
+    const gym_id = bodyGymId ?? tokenGymId;
+
+    if (!gym_id) {
+      return response.status(400).json({ error: "gym_id is required" });
+    }
 
     const alreadyCheckedIn = await CheckInOut.findOne({
-      user_id: email,
+      user_id: id,
       checked_out: null,
     });
 
@@ -72,8 +90,8 @@ export const handleCheckInOut = async (
 
     const newCheckIn = new CheckInOut({
       _id: `${Date.now()}`,
-      user_id: email,
-      gym_id: gym_id,
+      user_id: id,
+      gym_id,
       checked_in: new Date(),
       checked_out: null,
     });

@@ -52,7 +52,6 @@ export const fetchUserClasses = async (
 
     const userBookedClasses = await ClassBooking.find({ user_id: id });
     const userWaitlistClasses = await Waitlist.find({ user_id: id });
-
     return response
       .status(200)
       .json({ userBookedClasses, userWaitlistClasses });

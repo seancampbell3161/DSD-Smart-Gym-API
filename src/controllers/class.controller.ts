@@ -31,33 +31,72 @@ export const createClass = async (
 };
 
 export const fetchClasses = async (
-  request: IAuthenticatedRequest,
-  response: Response
+  req: IAuthenticatedRequest,
+  res: Response
 ) => {
-  const { id } = request.params; // gym_id
-  try {
-    const allClasses = await Class.find({ gym_id: id });
-    return response.status(200).json({ allClasses });
-  } catch (error) {
-    return response.status(500).json({ error });
+   try {
+    const { gymId } = req.query;
+
+    const query = gymId ? { gym_id: gymId } : {};
+    const classes = await Class.find(query);
+
+    res.json({ allClasses: classes });
+  } catch (err: any) {
+    res.status(500).json({ message: err.message });
   }
 };
 
-export const fetchUserClasses = async (
-  request: IAuthenticatedRequest,
-  response: Response
-) => {
+export const fetchClassesByGym = async (
+  req: IAuthenticatedRequest,
+  res: Response) => {
+ try {
+    const gymId = req.params.gymId;
+
+    // Fetch all classes for this gym
+    const classes = await Class.find({ gym_id: gymId }).lean();
+
+    // Get all class IDs
+    const classIds = classes.map(c => c._id.toString());
+
+    // Aggregate waitlist counts for those class IDs
+    const waitlistCounts = await Waitlist.aggregate([
+      { $match: { class_id: { $in: classIds } } },
+      { $group: { _id: "$class_id", count: { $sum: 1 } } }
+    ]);
+
+    // Map counts for quick lookup
+    const waitlistMap: Record<string, number> = {};
+    waitlistCounts.forEach(w => {
+      waitlistMap[w._id] = w.count;
+    });
+
+    // Attach waitlistCount to each class
+    const withCounts = classes.map(cls => ({
+      ...cls,
+      waitlistCount: waitlistMap[cls._id.toString()] || 0
+    }));
+
+    res.json({ allClasses: withCounts });
+  } catch (err: any) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const fetchUserClasses = async (req: IAuthenticatedRequest,
+  res: Response) => {
   try {
-    const { id } = request.user!; // canonical user id
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+    const userEmail = req.user.id; // this is email
 
-    const userBookedClasses = await ClassBooking.find({ user_id: id });
-    const userWaitlistClasses = await Waitlist.find({ user_id: id });
+    const bookings = await ClassBooking.find({ user_id: userEmail });
+    const classIds = bookings.map(b => b.class_id);
+    const classes = await Class.find({ _id: { $in: classIds } });
 
-    return response
-      .status(200)
-      .json({ userBookedClasses, userWaitlistClasses });
-  } catch (error) {
-    return response.status(500).json({ error });
+    res.json({ userClasses: classes });
+  } catch (err) {
+    res.status(500).json({ message: "Server error fetching user classes" });
   }
 };
 
@@ -66,14 +105,15 @@ export const joinClass = async (
   response: Response
 ) => {
   try {
-    const { id: userId } = request.user!;
-    const { id } = request.params; // class id
+    const { id: userId } = request.user!; // user email
+    const { id } = request.params; // class ID
 
     const gymClass = await Class.findById(id);
     if (!gymClass) {
       return response.status(404).json({ error: "Class not found." });
     }
 
+    // Check if already booked
     const alreadyBooked = await ClassBooking.findOne({
       class_id: id,
       user_id: userId,
@@ -84,27 +124,35 @@ export const joinClass = async (
         .json({ error: "You are already booked for this class." });
     }
 
+    // Check if already waitlisted
     const alreadyWaitlisted = await Waitlist.findOne({
       class_id: id,
       user_id: userId,
     });
     if (alreadyWaitlisted) {
-      return response
-        .status(400)
-        .json({ error: "You are already waitlisted for this class." });
+      const waitlistCount = await Waitlist.countDocuments({ class_id: id });
+      return response.status(400).json({ 
+        error: "You are already waitlisted for this class.",
+        waitlistCount
+      });
     }
 
+    // Class full → add to waitlist
     if (gymClass.attendees >= gymClass.capacity) {
       await Waitlist.create({
         class_id: id,
         user_id: userId,
       });
 
-      return response
-        .status(200)
-        .json({ message: "Class is full. You have been waitlisted." });
+      const waitlistCount = await Waitlist.countDocuments({ class_id: id });
+
+      return response.status(200).json({
+        message: "Class is full. You have been waitlisted.",
+        waitlistCount
+      });
     }
 
+    // Class has space → add to bookings
     await ClassBooking.create({
       class_id: id,
       user_id: userId,
@@ -112,7 +160,10 @@ export const joinClass = async (
 
     await Class.findByIdAndUpdate(id, { $inc: { attendees: 1 } });
 
-    return response.status(200).json({ message: "Successfully booked class." });
+    return response.status(200).json({
+      message: "Successfully booked class.",
+      waitlistCount: 0, // still 0 for this class since added to attendees
+    });
   } catch (error) {
     return response.status(500).json({ error });
   }

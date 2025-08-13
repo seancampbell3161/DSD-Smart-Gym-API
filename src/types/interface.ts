@@ -35,10 +35,10 @@ export interface IClass {
 }
 
 export interface IJwtPayload {
-  id: string;          
+  id: string;
   role: UserRole;
   gym_id?: string;
-  iat?: number;          
+  iat?: number;
   exp?: number;
 }
 

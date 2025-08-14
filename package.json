@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "nodemon src/app.ts",
     "build": "tsc",
-    "start": "node dist/app.js"
+    "start": "node dist/app.js",
+    "stripe:listen": "C:\\\\Users\\\\carme\\\\Downloads\\\\stripe_1.29.0_windows_x86_64\\\\stripe.exe listen --events checkout.session.completed,payment_intent.succeeded --forward-to localhost:5000/stripe/webhook",
+    "stripe:trigger": "C:\\\\Users\\\\carme\\\\Downloads\\\\stripe_1.29.0_windows_x86_64\\\\stripe.exe trigger checkout.session.completed",
+    "stripe:whoami": "C:\\\\Users\\\\carme\\\\Downloads\\\\stripe_1.29.0_windows_x86_64\\\\stripe.exe whoami",
+    "dev:all": "concurrently -k -n api,stripe \"npm run dev\" \"npm run stripe:listen\""
   },
   "keywords": [],
   "author": "",
@@ -20,8 +24,8 @@
     "mjml": "^4.15.3",
     "mongodb": "^6.17.0",
     "mongoose": "^8.16.3",
-    "stripe": "^18.4.0",
     "nodemailer": "^7.0.5",
+    "stripe": "^18.4.0",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
@@ -32,6 +36,7 @@
     "@types/mongoose": "^5.11.97",
     "@types/node": "^24.0.14",
     "@types/nodemailer": "^6.4.17",
+    "concurrently": "^9.2.0",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"

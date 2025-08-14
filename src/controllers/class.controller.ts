@@ -6,6 +6,8 @@ import mjml2html from "mjml";
 import fs from "fs";
 import { User } from "../models/user.model";
 
+//fixed a bunch of controllers
+
 const user = process.env.NODE_USER;
 const password = process.env.NODE_PASS;
 

@@ -67,6 +67,55 @@ export const createClass = async (req: IAuthenticatedRequest, res: Response) => 
   }
 };
 
+export const fetchClasses = async (
+  req: IAuthenticatedRequest,
+  res: Response
+) => {
+   try {
+    const { gymId } = req.query;
+
+    const query = gymId ? { gym_id: gymId } : {};
+    const classes = await Class.find(query);
+
+    res.json({ allClasses: classes });
+  } catch (err: any) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const fetchClassesByGym = async (
+  req: IAuthenticatedRequest,
+  res: Response) => {
+ try {
+    const gymId = req.params.gymId;
+
+    // Fetch all classes for this gym
+    const classes = await Class.find({ gym_id: gymId }).lean();
+
+    // Get all class IDs
+    const classIds = classes.map(c => c._id.toString());
+
+    // Aggregate waitlist counts for those class IDs
+    const waitlistCounts = await Waitlist.aggregate([
+      { $match: { class_id: { $in: classIds } } },
+      { $group: { _id: "$class_id", count: { $sum: 1 } } }
+    ]);
+
+    // Map counts for quick lookup
+    const waitlistMap: Record<string, number> = {};
+    waitlistCounts.forEach(w => {
+      waitlistMap[w._id] = w.count;
+    });
+
+    // Attach waitlistCount to each class
+    const withCounts = classes.map(cls => ({
+      ...cls,
+      waitlistCount: waitlistMap[cls._id.toString()] || 0
+    }));
+
+    res.json({ allClasses: withCounts });
+  } catch (err: any) {
+    res.status(500).json({ message: err.message });
 export const fetchClasses = async (req: IAuthenticatedRequest, res: Response) => {
   try {
     const gymId =
@@ -87,8 +136,22 @@ export const fetchClasses = async (req: IAuthenticatedRequest, res: Response) =>
   }
 };
 
+export const fetchUserClasses = async (req: IAuthenticatedRequest,
+  res: Response) => {
 export const fetchUserClasses = async (req: IAuthenticatedRequest, res: Response) => {
   try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+    const userEmail = req.user.id; // this is email
+
+    const bookings = await ClassBooking.find({ user_id: userEmail });
+    const classIds = bookings.map(b => b.class_id);
+    const classes = await Class.find({ _id: { $in: classIds } });
+
+    res.json({ userClasses: classes });
+  } catch (err) {
+    res.status(500).json({ message: "Server error fetching user classes" });
     const { id } = req.user!;
     const userBookedClasses = await ClassBooking.find({ user_id: id }).lean();
     const userWaitlistClasses = await Waitlist.find({ user_id: id }).lean();
@@ -130,10 +193,19 @@ export const joinClass = async (req: IAuthenticatedRequest, res: Response) => {
       return res.status(200).json({ message: "Class is full. You have been waitlisted." });
     }
 
+    // Class has space → add to bookings
+    await ClassBooking.create({
+      class_id: id,
+      user_id: userId,
+    });
+
     await ClassBooking.create({ class_id: id, user_id: userId });
     await Class.findByIdAndUpdate(id, { $inc: { attendees: 1 } });
 
-    return res.status(200).json({ message: "Successfully booked class." });
+    return res.status(200).json({
+      message: "Successfully booked class.",
+      waitlistCount: 0, // still 0 for this class since added to attendees
+    });
   } catch (error) {
     return res.status(500).json({ error: "Failed to join class" });
   }

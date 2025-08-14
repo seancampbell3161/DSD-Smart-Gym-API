@@ -50,7 +50,6 @@ app.use("/api/adminAnalytics", adminAnalyticsRoutes);
 // app.use("/api/gyms", gymRoutes);
 // app.use("/api/qrCodes", qrcodeRoutes);
 // app.use("/api/checkInOut", checkinoutRoutes);
-
 app.use("/api/access", accessRoutes);
 app.use("/api/classes", classRoutes);
 app.use("/api/stripe", stripeRoutes);

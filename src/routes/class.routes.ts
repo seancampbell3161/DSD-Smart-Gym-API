@@ -5,6 +5,7 @@ import {
   fetchUserClasses,
   joinClass,
   leaveClass,
+  fetchClassesByGym,
   cancelClass,
   uncancelClass,
   deleteClass,
@@ -17,7 +18,8 @@ const router = express.Router();
 // Create class (trainer/admin)
 router.post("/", requireAuth, requireRole(["trainer", "admin"]), createClass);
 
-// Current user's classes (role-aware in controller)
+router.get("/", requireAuth, fetchClasses);
+router.get("/gym/:gymId", requireAuth, fetchClassesByGym);
 router.get("/userClasses", requireAuth, fetchUserClasses);
 
 

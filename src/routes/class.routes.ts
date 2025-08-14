@@ -5,6 +5,7 @@ import {
   fetchUserClasses,
   joinClass,
   leaveClass,
+  fetchClassesByGym
 } from "../controllers/class.controller";
 import { requireAuth } from "../middleware/requireAuth";
 import { requireRole } from "../middleware/requireRole";
@@ -16,6 +17,7 @@ router.post("/:id/join", requireAuth, joinClass);
 router.post("/:id/leave", requireAuth, leaveClass);
 
 router.get("/", requireAuth, fetchClasses);
+router.get("/gym/:gymId", requireAuth, fetchClassesByGym);
 router.get("/userClasses", requireAuth, fetchUserClasses);
 
 export default router;
